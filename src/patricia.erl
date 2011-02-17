@@ -27,8 +27,10 @@ insert(E, empty) ->
     {leaf, [E]};
 insert(E, Tree) ->
     H = hash(E),
-    {Bit, Lt} = find_bit(H, Tree),
-    insert(H, E, Bit, Lt, Tree).
+    case find_bit(H, Tree) of
+	{Bit, Lt} -> insert(H, E, Bit, Lt, Tree);
+	equal     -> insert(H, E, 0,   none, Tree)
+    end.
 
 -spec find_bit(integer(), ptree(_)) -> {pos_integer(), boolean()}.
 find_bit(H, {leaf, [A | _]}) ->
@@ -43,6 +45,10 @@ find_bit(H, {node, Bit, Left, Right}) ->
 crit_bit(I1, I2) ->
     crit_bit(I1, I2, ?BIT_MAX).
 
+crit_bit(I1, I2, -1) when I1 == I2 ->
+    equal;
+crit_bit(I1, I2, -1) when I1 =/= I2 ->
+    {impossible, I1, I2};
 crit_bit(I1, I2, N) ->
     Bit = (1 bsl N),
     case (Bit band I1) bxor (Bit band I2) of
@@ -70,6 +76,8 @@ insert(_H, E, Bit, Lt, {leaf, Es} = Lf) ->
 	    {leaf, Es};
 	false ->
 	    case Lt of
+		none ->
+		    {leaf, [E | Es]};
 		true ->
 		    {node, Bit, {leaf, [E]}, Lf};
 		false ->
