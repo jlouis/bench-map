@@ -1,6 +1,6 @@
 -module(bench_map).
 
--export([run/0]).
+-export([run/0, runs/1]).
 
 -ifdef(TEST).
 -include_lib("eqc/include/eqc.hrl").
@@ -8,18 +8,15 @@
 -endif.
 
 run() ->
-    [{sets, runs(
-	      fun () ->
-		      timer:tc(fun() -> set_test(), ok end, [])
-	      end)},
-     {dict, timer:tc(fun() -> dict_test(), ok end, [])},
-     {gb_sets, runs(
-		 fun () ->
-			 timer:tc(fun() -> gb_sets_test(), ok end, [])
-		 end)},
-     {gb_trees, timer:tc(fun() -> gb_trees_test(), ok end, [])},
-     {h_rb_sets, timer:tc(fun() -> h_rb_set_test(), ok end, [])},
-     {rb_sets, timer:tc(fun() -> rb_sets_test(), ok end, [])}].
+    [
+     {patricia, timer:tc(fun() -> patricia_test(), ok end, [])}
+     %% {sets, timer:tc(fun() -> set_test(), ok end, [])},
+     %% {dict, timer:tc(fun() -> dict_test(), ok end, [])},
+     %% {gb_sets, timer:tc(fun() -> gb_sets_test(), ok end, [])},
+     %% {gb_trees, timer:tc(fun() -> gb_trees_test(), ok end, [])},
+     %% {h_rb_sets, timer:tc(fun() -> h_rb_set_test(), ok end, [])},
+     %% {rb_sets, timer:tc(fun() -> rb_sets_test(), ok end, [])}
+    ].
 
 runs(F) ->
     [F() || _ <- lists:seq(1, 10)].
@@ -27,7 +24,11 @@ runs(F) ->
 words() ->
     Words = "/usr/share/dict/words",
     {ok, Content} = file:read_file(Words),
-    [binary_to_list(W) || W <- binary:split(Content, <<"\n">>, [global])].
+    {Taken, _} = lists:split(500,
+			     [binary_to_list(W)
+			      || W <- binary:split(Content, <<"\n">>, [global])]),
+    Taken.
+
 
 list_shuffle(L) ->
     random:seed(), %% Reset Random function
@@ -63,6 +64,15 @@ test_gb_sets_words(Words, Set) ->
       end,
       Words).
 
+test_patricia_words(Words, Tree) ->
+    lists:foreach(
+      fun(Word) ->
+	      true = patricia:is_element(Word, Tree)
+      end,
+      Words),
+    false = patricia:is_element(notthere, Tree).
+
+
 test_dict_words(Words, Dict) ->
     lists:foreach(
       fun(W) ->
@@ -84,46 +94,52 @@ test_map(Generator, TestFun) ->
     TestFun(lists:reverse(Ws), S),
     TestFun(list_shuffle(Ws), S).
 
-h_rb_set_test() ->
-    test_map(fun(Ws) ->
-		     h_rb_set:from_list(Ws)
-	     end,
-	     fun test_h_rb_set_words/2).
+%% h_rb_set_test() ->
+%%     test_map(fun(Ws) ->
+%% 		     h_rb_set:from_list(Ws)
+%% 	     end,
+%% 	     fun test_h_rb_set_words/2).
 
-set_test() ->
-    test_map(fun(Ws) ->
-		     sets:from_list(Ws)
-	     end,
-	     fun test_sets_words/2).
+%% set_test() ->
+%%     test_map(fun(Ws) ->
+%% 		     sets:from_list(Ws)
+%% 	     end,
+%% 	     fun test_sets_words/2).
 
-dict_test() ->
-    test_map(fun(Ws) ->
-		     dict:from_list([{K, true} || K <- Ws])
-	     end,
-	     fun test_dict_words/2).
+%% dict_test() ->
+%%     test_map(fun(Ws) ->
+%% 		     dict:from_list([{K, true} || K <- Ws])
+%% 	     end,
+%% 	     fun test_dict_words/2).
 
-gb_sets_test() ->
-    test_map(fun(Ws) ->
-		     gb_sets:from_list(Ws)
-	     end,
-	     fun test_gb_sets_words/2).
+%% gb_sets_test() ->
+%%     test_map(fun(Ws) ->
+%% 		     gb_sets:from_list(Ws)
+%% 	     end,
+%% 	     fun test_gb_sets_words/2).
 
-gb_trees_test() ->
-    test_map(fun(Ws) ->
-		     lists:foldl(
-		       fun(K, Tree) ->
-			       gb_trees:enter(K, true, Tree)
-		       end,
-		       gb_trees:empty(),
-		       Ws)
-	     end,
-	     fun test_gb_trees_words/2).
+%% gb_trees_test() ->
+%%     test_map(fun(Ws) ->
+%% 		     lists:foldl(
+%% 		       fun(K, Tree) ->
+%% 			       gb_trees:enter(K, true, Tree)
+%% 		       end,
+%% 		       gb_trees:empty(),
+%% 		       Ws)
+%% 	     end,
+%% 	     fun test_gb_trees_words/2).
 
-rb_sets_test() ->
+%% rb_sets_test() ->
+%%     test_map(fun(Ws) ->
+%% 		     rbsets:from_list(Ws)
+%% 	     end,
+%% 	     fun test_rb_sets_words/2).
+
+patricia_test() ->
     test_map(fun(Ws) ->
-		     rbsets:from_list(Ws)
+		     patricia:from_list(Ws)
 	     end,
-	     fun test_rb_sets_words/2).
+	     fun test_patricia_words/2).
 
 -ifdef(EUNIT).
 -ifdef(EQC).
