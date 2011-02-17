@@ -5,4 +5,5 @@
               {applications,[kernel,stdlib]},
               {mod,{myapp_app,[]}},
               {env,[]},
-              {modules,[bench_map,myapp_app,myapp_sup]}]}.
+              {modules,[bench_map,h_rb_set,myapp_app,myapp_sup,patricia,
+                        rbdict,rbdict1,rbsets]}]}.
