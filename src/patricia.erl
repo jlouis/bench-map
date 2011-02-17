@@ -49,17 +49,16 @@ crit_bit(I1, I2, N) ->
 	0 ->
 	    crit_bit(I1, I2, N-1);
 	_ ->
-	    {N, cmp_lt_bit(I1, I2, N)}
+	    {Bit, cmp_lt_bit(I1, I2, Bit)}
     end.
 
 -spec cmp_lt_bit(integer(), integer(), pos_integer()) -> boolean().
-cmp_lt_bit(I1, I2, N) ->
-    Bit = (1 bsl N),
+cmp_lt_bit(I1, I2, Bit) ->
     (Bit band I1) < (Bit band I2).
 
 
 inspect_bit(H, Bit) ->
-    case H band (1 bsl Bit) of
+    case H band Bit of
 	0 -> left;
 	_ -> right
     end.
@@ -106,6 +105,11 @@ is_element(Key, {node, Bit, L, R}, H) ->
 	right ->
 	    is_element(Key, R, H)
     end.
+
+
+
+
+
 
 
 
