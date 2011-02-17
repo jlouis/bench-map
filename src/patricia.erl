@@ -1,5 +1,7 @@
 -module(patricia).
-%% @todo Go over all the ordering values and check them.
+
+-compile(inline).
+-compile({inline_size,100}).
 
 -export([insert/2, is_element/2, from_list/1, new/0]).
 
@@ -90,19 +92,19 @@ insert(_H, E, Bit, Lt, {node, CBit, _Left, _Right} = N) when Bit > CBit ->
 	    {node, Bit, N, {leaf, [E]}}
     end.
 
+is_element(_Key, empty) -> false;
 is_element(Key, Tree) ->
     H = hash(Key),
-    is_element(H, Key, Tree).
+    is_element(Key, Tree, H).
 
-is_element(_, _, empty) -> false;
-is_element(_H, Key, {leaf, Elems}) ->
+is_element(Key, {leaf, Elems}, _H) ->
     lists:member(Key, Elems);
-is_element(H, Key, {node, Bit, L, R}) ->
+is_element(Key, {node, Bit, L, R}, H) ->
     case inspect_bit(H, Bit) of
 	left ->
-	    is_element(H, Key, L);
+	    is_element(Key, L, H);
 	right ->
-	    is_element(H, Key, R)
+	    is_element(Key, R, H)
     end.
 
 
