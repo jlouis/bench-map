@@ -35,11 +35,7 @@ runs(F) ->
 words() ->
     Words = "/usr/share/dict/words",
     {ok, Content} = file:read_file(Words),
-    {Taken, _} = lists:split(10000,
-			     [binary_to_list(W)
-			      || W <- binary:split(Content, <<"\n">>, [global])]),
-    Taken.
-
+    [binary_to_list(W) || W <- binary:split(Content, <<"\n">>, [global])].
 
 list_shuffle(L) ->
     random:seed(), %% Reset Random function
