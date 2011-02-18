@@ -36,10 +36,8 @@ runs(F) ->
 words() ->
     Words = "/usr/share/dict/words",
     {ok, Content} = file:read_file(Words),
-    Wrds = [binary_to_list(W) || W <- binary:split(Content, <<"\n">>, [global])],
-    {_, Taken1} = lists:split(250, Wrds),
-    {Taken, _}  = lists:split(250, Taken1),
-    Taken.
+    [binary_to_list(W) || W <- binary:split(Content, <<"\n">>, [global])].
+
 
 
 list_shuffle(L) ->

@@ -6,8 +6,10 @@
 	       | {leaf, integer(), [A]} | empty.
 
 -define(SZ, 4).
--define(SZ_Mask, 31).
--define(FULL_THRESH, 16).
+-define(SZ_Mask, 15).
+-define(FULL_THRESH, 8).
+-define(FULL_SZ, 16).
+-define(BIT_SZ, 32).
 
 hash(E) ->
     erlang:phash2(E).
@@ -21,7 +23,7 @@ new() ->
 
 insert(E, T) ->
     H = hash(E),
-    insert(32, E, H, T).
+    insert(?BIT_SZ, E, H, T).
 
 insert(_Bit, E, H, empty) ->
     {leaf, H, [E]};
@@ -48,12 +50,9 @@ insert(Bit, E, H, {full, Tuple}) ->
     N = search_mask(Bit, H),
     {full, setelement(N, Tuple, insert(Bit - ?SZ, E, H, element(N, Tuple)))}.
 
-
-
-
 is_element(E, T) ->
     H = hash(E),
-    is_element(32, E, H, T).
+    is_element(?BIT_SZ, E, H, T).
 
 is_element(_Bit, _E, _H, empty) ->
     false;
@@ -79,9 +78,9 @@ mk_partial(Bit, Hash, Val) ->
     {partial, 1, orddict:store(N, {leaf, Hash, Val}, orddict:new())}.
 
 mk_tuple(D) ->
-    list_to_tuple(mk_tuple(0, orddict:to_list(D))).
+    list_to_tuple(mk_tuple(1, orddict:to_list(D))).
 
-mk_tuple(32, _) -> [];
+mk_tuple(?FULL_SZ+1, _) -> [];
 mk_tuple(N, [{N, V} | Rest]) ->
     [V | mk_tuple(N+1, Rest)];
 mk_tuple(N, L) ->
