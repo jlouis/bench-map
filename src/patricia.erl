@@ -6,7 +6,8 @@
 -export([insert/2, is_element/2, from_list/1, new/0]).
 
 -define(BIT_MAX, 27). % Set by virtue of erlang:phash2
--type ptree(A) :: empty | {leaf, [A]} | {node, pos_integer(), ptree(A), ptree(A)}.
+-type non_empty_ptree(A) :: {leaf, [A]} | {node, pos_integer(), ptree(A), ptree(A)}.
+-type ptree(A) :: non_empty_ptree(A) | empty.
 
 
 
@@ -22,7 +23,7 @@ from_list(L) ->
 new() ->
     empty.
 
--spec insert(A, ptree(A)) -> ptree(A) | already.
+-spec insert(A, ptree(A)) -> non_empty_ptree(A).
 insert(E, empty) ->
     {leaf, [E]};
 insert(E, Tree) ->
@@ -32,7 +33,7 @@ insert(E, Tree) ->
 	equal     -> insert(H, E, 0,   none, Tree)
     end.
 
--spec find_bit(integer(), ptree(_)) -> {pos_integer(), boolean()}.
+-spec find_bit(integer(), ptree(_)) -> {pos_integer(), boolean()} | equal.
 find_bit(H, {leaf, [A | _]}) ->
     H1 = hash(A),
     crit_bit(H, H1);
