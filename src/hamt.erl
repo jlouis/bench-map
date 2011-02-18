@@ -76,7 +76,7 @@ is_element(Bit, E, H, {full, Tuple}) ->
 
 mk_partial(Bit, Hash, Val) ->
     N = search_mask(Bit, Hash),
-    {partial, 1, orddict:store(N, {leaf, Hash, [Val]}, orddict:new())}.
+    {partial, 1, orddict:store(N, {leaf, Hash, Val}, orddict:new())}.
 
 mk_tuple(D) ->
     list_to_tuple(mk_tuple(0, orddict:to_list(D))).
