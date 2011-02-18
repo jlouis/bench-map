@@ -89,7 +89,10 @@ mk_tuple(N, L) ->
 
 search_mask(Bit, H) ->
     Mask = ?SZ_Mask bsl (Bit - ?SZ),
-    (Mask band H) bsr (Bit - ?SZ).
+    ((Mask band H) bsr (Bit - ?SZ)) + 1.
+
+
+
 
 
 
