@@ -20,6 +20,7 @@ run_prof() ->
 
 run() ->
     [
+     {hamt, hamt_test()},
      {patricia, patricia_test()},
      {sets, set_test()},
      {dict, dict_test()},
@@ -70,6 +71,13 @@ test_gb_sets_words(Words, Set) ->
 	      true = gb_sets:is_element(Word, Set)
       end,
       Words).
+
+test_hamt_words(Words, Tree) ->
+    lists:foreach(
+      fun(Word) ->
+	      true = hamt:is_element(Word, Tree)
+      end, Words),
+    false = hamt:is_element(notthere, Tree).
 
 test_patricia_words(Words, Tree) ->
     lists:foreach(
@@ -149,6 +157,10 @@ patricia_test() ->
 		     patricia:from_list(Ws)
 	     end,
 	     fun test_patricia_words/2).
+
+hamt_test() ->
+    test_map(fun hamt:from_list/1,
+	     fun test_hamt_words/2).
 
 -ifdef(EUNIT).
 -ifdef(EQC).
