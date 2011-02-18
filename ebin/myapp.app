@@ -1,9 +1,0 @@
-{application,myapp,
-             [{description,[]},
-              {vsn,"1"},
-              {registered,[]},
-              {applications,[kernel,stdlib]},
-              {mod,{myapp_app,[]}},
-              {env,[]},
-              {modules,[bench_map,h_rb_set,myapp_app,myapp_sup,patricia,
-                        rbdict,rbdict1,rbsets]}]}.
