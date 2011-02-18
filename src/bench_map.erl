@@ -1,6 +1,6 @@
 -module(bench_map).
 
--export([run/0, run_prof/0, runs/1]).
+-export([run/0, run_prof/0, runs/1, list_shuffle/1]).
 
 -ifdef(TEST).
 -include_lib("eqc/include/eqc.hrl").
@@ -36,7 +36,11 @@ runs(F) ->
 words() ->
     Words = "/usr/share/dict/words",
     {ok, Content} = file:read_file(Words),
-    [binary_to_list(W) || W <- binary:split(Content, <<"\n">>, [global])].
+    Wrds = [binary_to_list(W) || W <- binary:split(Content, <<"\n">>, [global])],
+    {_, Taken1} = lists:split(250, Wrds),
+    {Taken, _}  = lists:split(250, Taken1),
+    Taken.
+
 
 list_shuffle(L) ->
     random:seed(), %% Reset Random function
@@ -71,13 +75,6 @@ test_gb_sets_words(Words, Set) ->
 	      true = gb_sets:is_element(Word, Set)
       end,
       Words).
-
-test_hamt_words(Words, Tree) ->
-    lists:foreach(
-      fun(Word) ->
-	      true = hamt:is_element(Word, Tree)
-      end, Words),
-    false = hamt:is_element(notthere, Tree).
 
 test_patricia_words(Words, Tree) ->
     lists:foreach(
@@ -158,6 +155,12 @@ patricia_test() ->
 	     end,
 	     fun test_patricia_words/2).
 
+test_hamt_words(Words, Tree) ->
+    lists:foreach(
+      fun(Word) ->
+	      true = hamt:is_element(Word, Tree)
+      end, Words).
+
 hamt_test() ->
     test_map(fun hamt:from_list/1,
 	     fun test_hamt_words/2).
@@ -165,7 +168,23 @@ hamt_test() ->
 -ifdef(EUNIT).
 -ifdef(EQC).
 
+prop_ins_fetch() ->
+    ?FORALL(L, non_empty(list(int())),
+	    begin
+		H = hamt:from_list(L),
+		true = lists:all(
+		  fun(X) -> X =:= true end,
+		  [hamt:is_element(E, H) || E <- L]),
+		true = lists:all(
+		  fun(X) -> X =:= true end,
+		  [hamt:is_element(E, H) || E <- lists:reverse(L)]),
+		true = lists:all(
+		  fun(X) -> X =:= true end,
+		  [hamt:is_element(E, H) || E <- list_shuffle(L)])
+	    end).
 
+hamt_ins_fetch_test() ->
+    ?assert(eqc:quickcheck(eqc:numtests(10000, prop_ins_fetch()))).
 
 -endif.
 -endif.
