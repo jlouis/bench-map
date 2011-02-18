@@ -1,6 +1,10 @@
-.PHONY: all compile test clean
+.PHONY: all compile test clean dialyze
 
 all: compile
+
+dialyze:
+	rebar dialyze
+
 
 compile:
 	rebar compile
